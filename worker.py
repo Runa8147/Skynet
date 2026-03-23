@@ -16,6 +16,7 @@ def start_worker():
     with open("job.blend", "wb") as f: f.write(r.content)
 
     # 4. Render & Update Master
+    
     for frame in range(task['start'], task['end'] + 1):
         subprocess.run(["blender", "-b", "job.blend", "-o", f"//out_{frame}", "-f", str(frame)])
         requests.post(f"http://{MASTER_IP}:5000/update_progress", 
@@ -24,10 +25,8 @@ def start_worker():
     # 5. Upload (simplified)
     print(f"📤 Sending results back...")
     with zipfile.ZipFile("results.zip", "w") as z:
-        for p, d, files in os.walk("output"):
-            for f in files:
-                z.write(os.path.join(p, f), f)
-
+        for frame in range(task['start'], task['end'] + 1):
+            z.write(f"out_{frame:04d}.png")
     with open("results.zip", "rb") as f:
         requests.post(f"{MASTER_URL}/upload_result", 
                       data={'worker_name': WORKER_NAME}, 
