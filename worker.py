@@ -18,7 +18,8 @@ def start_worker():
     # 4. Render & Update Master
     
     for frame in range(task['start'], task['end'] + 1):
-        subprocess.run(["blender", "-b", "job.blend", "-o", f"//out_{frame}", "-f", str(frame)])
+        index = frame - task['start'] + 1
+        subprocess.run(["blender", "-b", "job.blend", "-o", f"//out_{index}#", "-f", str(frame)])
         requests.post(f"http://{MASTER_IP}:5000/update_progress", 
                      json={"name": WORKER_NAME, "count": frame - task['start'] + 1})
 
